@@ -20,10 +20,9 @@ from PIL import ImageDraw
 import time
 
 
-def run(file=None, contrast=1.0):
+def run(file=None, contrast=1.0, debug=False):
     if file is None:
         file = "card2.jpg"
-    debug = False
 
     #############################
     # https://github.com/digitaltrails/punchedcardreader/blob/master/punchedCardReader.py
@@ -62,13 +61,13 @@ def run(file=None, contrast=1.0):
     card = Image.open(file).convert("L")  # read image and convert to gray
     width, height = card.size
     stat = ImageStat.Stat(card)
-    print(f"mean={stat.mean}  median={stat.median}  stddev={stat.stddev}  min,max={stat.extrema}")
+    print(f"orig picture: mean={stat.mean[0]}  median={stat.median[0]}  stddev={stat.stddev[0]}  min,max={stat.extrema[0]}")
     if stat.median[0] < 80:
-        return f"[color=ff3333]Error: picture is too dark[/color]"
-    if stat.median[0] > 200:
-        return f"[color=ff3333]Error: picture is too bright[/color]"
+        return "[color=ff3333]Error: picture is too dark[/color]"
+    if stat.median[0] > 230:
+        return "[color=ff3333]Error: picture is too bright[/color]"
     if stat.stddev[0] < 30:
-        return f"[color=ff3333]Error: picture has low contrast[/color]"
+        return "[color=ff3333]Error: picture has low contrast[/color]"
 
     cornerBrightness = (card.getpixel((0, 0)) +
                         card.getpixel((width-1, 0)) +
@@ -81,7 +80,7 @@ def run(file=None, contrast=1.0):
     borderBrightness = int((cornerBrightness + edgeBrightness) / 2)
     print(f"mean border pixel={borderBrightness}")
     if borderBrightness > 50:
-        return f"[color=ff3333]Error: no black/dark background[/color]"
+        return "[color=ff3333]Error: no black/dark background[/color]"
 
     if height > width:  # convert a portrait orientation to landscape
         card = card.rotate(90)
@@ -91,8 +90,13 @@ def run(file=None, contrast=1.0):
     if contrast != 1.0:
         enh = ImageEnhance.Contrast(card)
         card = enh.enhance(contrast)
-    # else:
-    #    card = ImageOps.autocontrast(card)
+    else:
+        contrast = "auto"
+        card = ImageOps.autocontrast(card)
+
+    stat = ImageStat.Stat(card)
+    print(f"enhanced picture, contrast = {contrast}: mean={stat.mean[0]}  median={stat.median[0]}  stddev={stat.stddev[0]}  min,max={stat.extrema[0]}")
+    threshold = int(stat.mean[0])
 
     if False:
         card.show()
@@ -109,15 +113,16 @@ def run(file=None, contrast=1.0):
         plt.imshow(im2arr)
         plt.show()
 
-    bw_img = im2arr > 80  # convert to black and white
+    # threshold = 80
+    bw_img = im2arr > threshold  # convert to black and white
     if False:
         plt.imshow(bw_img)
         plt.show()
 
     # Remove small white regions
-    open_img = ndimage.binary_opening(bw_img, iterations=4)
+    open_img = ndimage.binary_opening(bw_img, iterations=3)
     # Remove small black holes
-    close_img = ndimage.binary_closing(open_img, iterations=4)
+    close_img = ndimage.binary_closing(open_img, iterations=3)
     if False:
         plt.imshow(close_img)
         plt.show()
@@ -539,3 +544,12 @@ def run(file=None, contrast=1.0):
     imgdiff.save(fn)
 
     return (f"[color=0080ff]Text: '[/color]{text}[color=0080ff]'[/color]", text)
+
+
+if __name__ == "__main__":
+    file = "card2.jpg"
+    file = "CARD_20220922_094644.png"
+    file = "CARD_20220922_102704.png"
+    debug = True
+    res = run(file=file, contrast=1.0, debug=debug)
+    print(res)

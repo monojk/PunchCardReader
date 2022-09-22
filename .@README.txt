@@ -11,24 +11,7 @@ Linux:
    buildozer -v android deploy run
 
 
-powershell:
-   adb.exe install -r .\bin\cardreader-0.1-arm64-v8a_armeabi-v7a-debug.apk
+Under Windows, use WSL  (WSL2). But must install also the windows version of adb
+https://buildozer.readthedocs.io/en/latest/quickstart.html#run-my-application-from-windows-10
 
-
-fix Pillow version 9.2.0 instead of 8.4.0:
-https://github.com/Android-for-Python/Android-for-Python-Users#appendix-c--locally-modifying-a-recipe
-
-
-##############################################################################################################
-
-# [INFO]:    -> directory context /home/joachim/PycharmProjects/CardReader/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/build/other_builds/lapack/armeabi-v7a__ndk_target_21/lapack/build
-# [ERROR]:   Build failed: 21e/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64/bin/arm-linux-androideabi-gfortran not found. See https://github.com/mzakharo/android-gfortran
-
-https://github.com/kivy/python-for-android/issues/2508
-https://github.com/mzakharo/android-gfortran/releases
-
-this version claims to have fixed the problem with gfortran
-https://github.com/kivy/python-for-android/tree/v2022.07.20
-https://github.com/kivy/python-for-android/blob/develop/CHANGELOG.md
-Lapack depends on arm-linux-androideabi-gfortran #2508 (https://github.com/kivy/python-for-android/issues/2508)
-
+    buildozer android debug 2>&1 | tee build.log && buildozer -v android deploy run
