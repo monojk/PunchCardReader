@@ -50,7 +50,7 @@ def run(file=None, contrast=1.0, debug=False):
         #   (O, , ,O, , , , , , , , ):A
         #   (O, , , ,O, , , , , , , ):B
         #   (O, , , , ,O, , , , , , ):C
-        rows = IBM_MODEL_029_KEYPUNCH[1:].split('\n');
+        rows = IBM_MODEL_029_KEYPUNCH[1:].split('\n')
         rotated = [[r[i] for r in rows[0:13]] for i in range(5, len(rows[0]) - 1)]
         for v in rotated:
             translate[tuple(v[1:])] = v[0]
@@ -60,36 +60,13 @@ def run(file=None, contrast=1.0, debug=False):
     # PIL/pillow operations:
     card = Image.open(file).convert("L")  # read image and convert to gray
     width, height = card.size
-    stat = ImageStat.Stat(card)
-    print(f"orig picture: mean={stat.mean[0]}  median={stat.median[0]}  stddev={stat.stddev[0]}  min,max={stat.extrema[0]}")
-    if stat.median[0] < 80:
-        rawText = "Error: picture is too dark"
-        return (f"[color=ff3333]{rawText}[/color]", rawText)
-    if stat.median[0] > 230:
-        rawText="Error: picture is too bright"
-        return (f"[color=ff3333]{rawText}[/color]", rawText)
-    if stat.stddev[0] < 30:
-        rawText = "Error: picture has low contrast"
-        return (f"[color=ff3333]{rawText}[/color]", rawText)
-
-    cornerBrightness = (card.getpixel((0, 0)) +
-                        card.getpixel((width-1, 0)) +
-                        card.getpixel((0, height-1)) +
-                        card.getpixel((width-1, height-1))) / 4
-    edgeBrightness = (card.getpixel((0, int(height/2))) +
-                      card.getpixel((int(width/2), 0)) +
-                      card.getpixel((int(width/2), height-1)) +
-                      card.getpixel((width-1, int(height/2)))) / 4
-    borderBrightness = int((cornerBrightness + edgeBrightness) / 2)
-    print(f"mean border pixel={borderBrightness}")
-    if borderBrightness > 50:
-        rawText = "Error: no black/dark background"
-        return (f"[color=ff3333]{rawText}[/color]", rawText)
-
     if height > width:  # convert a portrait orientation to landscape
         card = card.rotate(90)
     width, height = card.size
     print(f"height={height}")
+
+    stat = ImageStat.Stat(card)
+    print(f"orig picture: mean={stat.mean[0]}  median={stat.median[0]}  stddev={stat.stddev[0]}  min,max={stat.extrema[0]}")
 
     if contrast != 1.0:
         enh = ImageEnhance.Contrast(card)
@@ -100,6 +77,29 @@ def run(file=None, contrast=1.0, debug=False):
 
     stat = ImageStat.Stat(carde)
     print(f"enhanced picture, contrast = {contrast}: mean={stat.mean[0]}  median={stat.median[0]}  stddev={stat.stddev[0]}  min,max={stat.extrema[0]}")
+    if stat.median[0] < 80:
+        rawText = "Error: picture is too dark"
+        return (f"[color=ff3333]{rawText}[/color]", rawText)
+    if stat.median[0] > 230:
+        rawText="Error: picture is too bright"
+        return (f"[color=ff3333]{rawText}[/color]", rawText)
+    if stat.stddev[0] < 30:
+        rawText = "Error: picture has low contrast"
+        return (f"[color=ff3333]{rawText}[/color]", rawText)
+
+    cornerBrightness = (carde.getpixel((0, 0)) +
+                        carde.getpixel((width - 1, 0)) +
+                        carde.getpixel((0, height - 1)) +
+                        carde.getpixel((width - 1, height - 1))) / 4
+    edgeBrightness = (carde.getpixel((0, int(height / 2))) +
+                      carde.getpixel((int(width / 2), 0)) +
+                      carde.getpixel((int(width / 2), height - 1)) +
+                      carde.getpixel((width - 1, int(height / 2)))) / 4
+    borderBrightness = int((cornerBrightness + edgeBrightness) / 2)
+    print(f"mean border pixel={borderBrightness}")
+    if borderBrightness > 50:
+        rawText = "Error: no black/dark background"
+        return (f"[color=ff3333]{rawText}[/color]", rawText)
     threshold = int(stat.mean[0])
 
     if False:

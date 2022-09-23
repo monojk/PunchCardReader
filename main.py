@@ -107,11 +107,11 @@ class CameraClick(BoxLayout):
         self.resultText, self.plainText = readPunchCard.run(file=fn, contrast=1.3)
         self.result.text = self.resultText
 
-    # the following is not used, but might be an idea for directsharing
+    # the following is not used, but might be an idea for direct sharing
     # https://gist.github.com/kived/0f450e738bf79c003253
     # https://stackoverflow.com/questions/38983649/kivy-android-share-image
     # https://stackoverflow.com/questions/63322944/how-to-use-share-button-to-share-content-of-my-app
-    def shareText(self):
+    def share_text(self):
         from jnius import autoclass
         PythonActivity = autoclass('org.kivy.android.PythonActivity')
         Intent = autoclass('android.content.Intent')
