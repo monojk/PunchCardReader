@@ -18,3 +18,6 @@ Under Windows, use WSL  (WSL2). But must install also the windows version of adb
 https://buildozer.readthedocs.io/en/latest/quickstart.html#run-my-application-from-windows-10
 
     buildozer android debug 2>&1 | tee build.log && buildozer -v android deploy run
+    
+Here is a screenshot of the app. Snapshot of the back of a punch card to get better results without disturbing text.      
+![Picture of the app](PunchCardReader.jpg)
