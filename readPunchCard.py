@@ -63,11 +63,14 @@ def run(file=None, contrast=1.0, debug=False):
     stat = ImageStat.Stat(card)
     print(f"orig picture: mean={stat.mean[0]}  median={stat.median[0]}  stddev={stat.stddev[0]}  min,max={stat.extrema[0]}")
     if stat.median[0] < 80:
-        return "[color=ff3333]Error: picture is too dark[/color]"
+        rawText = "Error: picture is too dark"
+        return (f"[color=ff3333]{rawText}[/color]", rawText)
     if stat.median[0] > 230:
-        return "[color=ff3333]Error: picture is too bright[/color]"
+        rawText="Error: picture is too bright"
+        return (f"[color=ff3333]{rawText}[/color]", rawText)
     if stat.stddev[0] < 30:
-        return "[color=ff3333]Error: picture has low contrast[/color]"
+        rawText = "Error: picture has low contrast"
+        return (f"[color=ff3333]{rawText}[/color]", rawText)
 
     cornerBrightness = (card.getpixel((0, 0)) +
                         card.getpixel((width-1, 0)) +
@@ -80,7 +83,8 @@ def run(file=None, contrast=1.0, debug=False):
     borderBrightness = int((cornerBrightness + edgeBrightness) / 2)
     print(f"mean border pixel={borderBrightness}")
     if borderBrightness > 50:
-        return "[color=ff3333]Error: no black/dark background[/color]"
+        rawText = "Error: no black/dark background"
+        return (f"[color=ff3333]{rawText}[/color]", rawText)
 
     if height > width:  # convert a portrait orientation to landscape
         card = card.rotate(90)
@@ -89,22 +93,22 @@ def run(file=None, contrast=1.0, debug=False):
 
     if contrast != 1.0:
         enh = ImageEnhance.Contrast(card)
-        card = enh.enhance(contrast)
+        carde = enh.enhance(contrast)
     else:
         contrast = "auto"
-        card = ImageOps.autocontrast(card)
+        carde = ImageOps.autocontrast(card)
 
-    stat = ImageStat.Stat(card)
+    stat = ImageStat.Stat(carde)
     print(f"enhanced picture, contrast = {contrast}: mean={stat.mean[0]}  median={stat.median[0]}  stddev={stat.stddev[0]}  min,max={stat.extrema[0]}")
     threshold = int(stat.mean[0])
 
     if False:
-        card.show()
+        carde.show()
 
     ########################
     # scipy operations:
     # https://stackoverflow.com/questions/384759/how-to-convert-a-pil-image-into-a-numpy-array
-    im2arr = np.array(card)  # im2arr.shape: height x width x channel
+    im2arr = np.array(carde)  # im2arr.shape: height x width x channel
     # print(f"shape={im2arr.shape} dtype={im2arr.dtype} dimensions={im2arr.ndim}")
 
     # https://stackoverflow.com/questions/3823752/display-image-as-grayscale-using-matplotlib
@@ -129,7 +133,7 @@ def run(file=None, contrast=1.0, debug=False):
 
     # fill_img: gets the unpunched card (white)
     fill_img = ndimage.binary_fill_holes(close_img)
-    my_img = Image.fromarray(fill_img)
+    my_fill_img = Image.fromarray(fill_img)
     # my_img.show()
     # https://stackoverflow.com/questions/54134295/what-is-the-method-for-edge-detection-of-a-binary-image-in-python
     # edges are black on white
@@ -139,9 +143,9 @@ def run(file=None, contrast=1.0, debug=False):
 
     #####################
     # get the crop coordinates of the original (possibly rotated/perspective) image
-    y_nonzero, x_nonzero = np.nonzero(my_img.point(lambda i: i))
+    y_nonzero, x_nonzero = np.nonzero(my_fill_img.point(lambda i: i))
     # print(f"{x_nonzero} {y_nonzero}")
-    width, height = my_img.size
+    width, height = my_fill_img.size
     print(f"Unpunched card width, height: {width}, {height}")
     bBox = [[np.min(x_nonzero), np.min(y_nonzero)], [np.max(x_nonzero), np.max(y_nonzero)]]
     croppedWidth = np.max(x_nonzero) - np.min(x_nonzero)
@@ -152,19 +156,19 @@ def run(file=None, contrast=1.0, debug=False):
         plt.show()  # fill_img = unpunched card (white on black)
 
     # crop both images at bBox fill_img ^ close_img
-    fill_imgc = fill_img[np.min(y_nonzero): np.max(y_nonzero), np.min(x_nonzero): np.max(x_nonzero)]
+    fill_img_crop = fill_img[np.min(y_nonzero): np.max(y_nonzero), np.min(x_nonzero): np.max(x_nonzero)]
     if False:
-        plt.imshow(fill_imgc)
+        plt.imshow(fill_img_crop)
         plt.show()  # fill_imgc = cropped unpunched card (white on black)
-    close_imgc = close_img[np.min(y_nonzero): np.max(y_nonzero), np.min(x_nonzero): np.max(x_nonzero)]
-    # only the white holes are left in holes_img
-    holes_imgc = fill_imgc ^ close_imgc
+    close_img_crop = close_img[np.min(y_nonzero): np.max(y_nonzero), np.min(x_nonzero): np.max(x_nonzero)]
+    # only the white holes are left in holes_img_crop
+    holes_img_crop = fill_img_crop ^ close_img_crop
     if False:
-        plt.imshow(holes_imgc)
+        plt.imshow(holes_img_crop)
         plt.show()
 
-    my_imgc = Image.fromarray(fill_imgc)
-    y_nonzero, x_nonzero = np.nonzero(my_imgc.point(lambda i: i))
+    fill_crop_img = Image.fromarray(fill_img_crop)
+    y_nonzero, x_nonzero = np.nonzero(fill_crop_img.point(lambda i: i))
     bBox = [[np.min(x_nonzero), np.min(y_nonzero)], [np.max(x_nonzero), np.max(y_nonzero)]]
     croppedWidth = np.max(x_nonzero) - np.min(x_nonzero)
     croppedHeight = np.max(y_nonzero) - np.min(y_nonzero)
@@ -178,12 +182,12 @@ def run(file=None, contrast=1.0, debug=False):
     horizScan = [int(0.25 * croppedHeight), int(0.75 * croppedHeight)]
     for idx, y in enumerate(horizScan):
         for x in range(croppedWidth):
-            if fill_imgc[y, x] > 0:
+            if fill_img_crop[y, x] > 0:
                 # print(f"xLow: {x}")
                 xLow[idx] = x
                 break
         for x in reversed(range(croppedWidth)):
-            if fill_imgc[y, x] > 0:
+            if fill_img_crop[y, x] > 0:
                 # print(f"xHigh: {x}")
                 xHigh[idx] = x
                 break
@@ -195,12 +199,12 @@ def run(file=None, contrast=1.0, debug=False):
     vertScan = [int(0.1 * croppedWidth), int(0.9 * croppedWidth)]
     for idx, x in enumerate(vertScan):
         for y in range(croppedHeight):
-            if fill_imgc[y, x] > 0:
+            if fill_img_crop[y, x] > 0:
                 # print(f"yLow: {y}")
                 yLow[idx] = y
                 break
         for y in reversed(range(croppedHeight)):
-            if fill_imgc[y, x] > 0:
+            if fill_img_crop[y, x] > 0:
                 # print(f"yHigh: {y}")
                 yHigh[idx] = y
                 break
@@ -267,11 +271,11 @@ def run(file=None, contrast=1.0, debug=False):
                 se = data[4:6]
     '''
 
-    holesimc = Image.fromarray(holes_imgc)
-    draw = ImageDraw.Draw(holesimc)
+    holes_crop_img = Image.fromarray(holes_img_crop)
+    draw = ImageDraw.Draw(holes_crop_img)
     draw.line([nw, ne, se, sw, nw], fill=256, width=5)
     if False:
-        holesimc.show()
+        holes_crop_img.show()
 
     # QUAD transform should turn perspective to rectangle
     size = (int((ne[0] - nw[0] + se[0] - sw[0]) / 2), int((sw[1] - nw[1] + se[1] - ne[1]) / 2))  # mean
@@ -279,45 +283,45 @@ def run(file=None, contrast=1.0, debug=False):
     # size = ( int((math.dist(ne,nw) + math.dist(se,sw))/2), int((math.dist(nw,sw) + math.dist(ne,se))/2) )  # dist
     # size = (max(ne[0],se[0]) - min(nw[0],sw[0]), max(se[1],sw[1]) - min(ne[1],nw[1]))  # bbox
     print(f"size: {size}")
-    imgholes = holesimc.transform(size, Image.QUAD,  # Image.Transform.QUAD  9.2 vs 8.4
+    rectified_holes_img = holes_crop_img.transform(size, Image.QUAD,  # Image.Transform.QUAD  9.2 vs 8.4
                                   flatten([nw, sw, se, ne]),
                                   resample=Image.BILINEAR)  # Image.Resampling.BILINEAR
     if False:
-        imgholes.show()
+        rectified_holes_img.show()
 
     ###################################################################
     # also transform the blank card image to find out position of bevel
-    imgcard = my_imgc.transform(size, Image.QUAD,  # Image.Transform.QUAD
+    blank_card = fill_crop_img.transform(size, Image.QUAD,  # Image.Transform.QUAD
                                 flatten([nw, sw, se, ne]),
                                 resample=Image.BILINEAR)  # Image.Resampling.BILINEAR
     if False:
-        imgcard.show()
+        blank_card.show()
     bevelx = 0.04
     bevely = 0.13
-    bbox_ul = (0, 0, int(imgcard.size[0] * bevelx), int(imgcard.size[1] * bevely))
-    bbox_ur = (int(imgcard.size[0] * (1 - bevelx)), 0, imgcard.size[0], int(imgcard.size[1] * bevely))
-    bbox_ll = (0, int(imgcard.size[1] * (1 - bevely)), int(imgcard.size[0] * bevelx), imgcard.size[1])
+    bbox_ul = (0, 0, int(blank_card.size[0] * bevelx), int(blank_card.size[1] * bevely))
+    bbox_ur = (int(blank_card.size[0] * (1 - bevelx)), 0, blank_card.size[0], int(blank_card.size[1] * bevely))
+    bbox_ll = (0, int(blank_card.size[1] * (1 - bevely)), int(blank_card.size[0] * bevelx), blank_card.size[1])
     bbox_lr = (
-    int(imgcard.size[0] * (1 - bevelx)), int(imgcard.size[1] * (1 - bevely)), imgcard.size[0], imgcard.size[1])
+    int(blank_card.size[0] * (1 - bevelx)), int(blank_card.size[1] * (1 - bevely)), blank_card.size[0], blank_card.size[1])
 
-    imgcard_ul = imgcard.crop(bbox_ul)
+    imgcard_ul = blank_card.crop(bbox_ul)
     stat_ul = ImageStat.Stat(imgcard_ul).mean
     # print(stat)
     # imgcard_ul.show()
-    imgcard_ur = imgcard.crop(bbox_ur)
+    imgcard_ur = blank_card.crop(bbox_ur)
     stat_ur = ImageStat.Stat(imgcard_ur).mean
     # print(stat)
     # imgcard_ur.show()
-    imgcard_ll = imgcard.crop(bbox_ll)
+    imgcard_ll = blank_card.crop(bbox_ll)
     stat_ll = ImageStat.Stat(imgcard_ll).mean
     # print(stat)
     # imgcard_ll.show()
-    imgcard_lr = imgcard.crop(bbox_lr)
+    imgcard_lr = blank_card.crop(bbox_lr)
     stat_lr = ImageStat.Stat(imgcard_lr).mean
     # print(stat)
     # imgcard_lr.show()
 
-    print(f"Image Mode={imgholes.mode}")  # image Mode is 1, expected L or RGB
+    print(f"Image Mode={rectified_holes_img.mode}")  # image Mode is 1, expected L or RGB
 
     stat = [("ul", stat_ul), ("ur", stat_ur), ("ll", stat_ll), ("lr", stat_lr)]
     corner = min(stat, key=lambda t: t[1])
@@ -329,13 +333,13 @@ def run(file=None, contrast=1.0, debug=False):
         pass
     elif bevelCorner == "ur":
         # backside, flip horizontally
-        imgholes = ImageOps.mirror(imgholes)
+        rectified_holes_img = ImageOps.mirror(rectified_holes_img)
     elif bevelCorner == "ll":
         # backside, flip vertically
-        imgholes = ImageOps.flip(imgholes)
+        rectified_holes_img = ImageOps.flip(rectified_holes_img)
     elif bevelCorner == "lr":
         # frontside, rotate 180°
-        imgholes = imgholes.rotate(180)
+        rectified_holes_img = rectified_holes_img.rotate(180)
     else:
         pass
 
@@ -345,23 +349,23 @@ def run(file=None, contrast=1.0, debug=False):
             lut.append(255 - i)
         return image.point(lut)
 
-    print(f"Image Mode={imgholes.mode}")
-    if imgholes.mode == "1":
-        imgci = invertImage(imgholes)  # invert, now card is white, holes black
+    print(f"Image Mode={rectified_holes_img.mode}")
+    if rectified_holes_img.mode == "1":
+        final_holes_img = invertImage(rectified_holes_img)  # invert, now card is white, holes black
     else:
-        imgci = ImageOps.invert(imgholes)  # invert, now card is white, holes black
-    # imgci.show()
+        final_holes_img = ImageOps.invert(rectified_holes_img)  # invert, now card is white, holes black
+    # final_holes_img.show()
 
-    width, height = imgci.size
+    width, height = final_holes_img.size
     idealRatio = 187.325 / 82.55
     print(f"cropped size: {width} {height}  ratio: {width / height * 100:.1f}%  (ideal: {idealRatio * 100:.1f})")
 
     # Find all holes
     # https://scipy-lectures.org/advanced/image_processing/auto_examples/plot_find_object.html#sphx-glr-advanced-image-processing-auto-examples-plot-find-object-py
-    imgci_np = np.array(imgci)
+    imgci_np = np.array(final_holes_img)
     mask = ~imgci_np
-    # print(f"imgci={imgci}")
-    # print(f"imgci={np.array(imgci)}")
+    # print(f"final_holes_img={final_holes_img}")
+    # print(f"final_holes_img={np.array(final_holes_img)}")
     # print(f"mask={mask}")
     label_im, nb_labels = ndimage.label(mask)
     # print(label_im, nb_labels)
@@ -400,7 +404,7 @@ def run(file=None, contrast=1.0, debug=False):
         boxBArea = (boxB[1][0] - boxB[0][0] + 1) * (boxB[1][1] - boxB[0][1] + 1)
         # compute the intersection over union by taking the intersection
         # area and dividing it by the sum of prediction + ground-truth
-        # areas - the interesection area
+        # areas - the intersection area
         # print(f"\n{boxA} vs {boxB}")
         # print(f"{boxA[0][0]} {boxA[0][1]}  {boxA[1][0]} {boxA[1][1]}")
         # print(f"{boxB[0][0]} {boxB[0][1]}  {boxB[1][0]} {boxB[1][1]}")
@@ -530,12 +534,12 @@ def run(file=None, contrast=1.0, debug=False):
     print("         1         2         3         4         5         6         7         8")
     print("1........0.........0.........0.........0.........0.........0.........0.........0")
     print(f"{text}\n")
-    #      0242313KEINERT,JOACHIM   PRAKTIKUM IMPULS-UND DIGITALTECHNIK     7884041705 0 13
+    #           0123456789      ABCDEFGHI      JKLMNOPQR      STUVWXYZ      ()?$
 
     #######################################################
     # show the difference
     # ImageOps.invert(ImageChops.difference(imgci, crd)).show()
-    imgdiff = ImageChops.difference(imgci, crd)
+    imgdiff = ImageChops.difference(final_holes_img, crd)
 
     if file is None:
         fn = "/sdcard/CARD_{}_READ.png".format(time.strftime("%Y%m%d_%H%M%S"))
@@ -546,10 +550,14 @@ def run(file=None, contrast=1.0, debug=False):
     return (f"[color=0080ff]Text: '[/color]{text}[color=0080ff]'[/color]", text)
 
 
+# This is for standalone testing purposes with Spyder    
 if __name__ == "__main__":
-    file = "card2.jpg"
-    file = "CARD_20220922_094644.png"
-    file = "CARD_20220922_102704.png"
+    # file = "card2.jpg"
+    # file = "CARD_20220922_094644.png"
+    # file = "CARD_20220922_102704.png"
+    file = "CARD_20220923_110102.png"
+    # file = "CARD_20220922_141131.png"       # Error: no black/dark background
+    # file = "CARD_20220922_141231.png"       # Error: no black/dark background
     debug = True
     res = run(file=file, contrast=1.0, debug=debug)
     print(res)

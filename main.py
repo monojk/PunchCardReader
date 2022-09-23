@@ -49,7 +49,6 @@ Builder.load_string('''
             keep_ratio: True
             play: True
             
-        #TextInput:
         Label:
             id: result
             #multiline: False 
@@ -72,6 +71,7 @@ Builder.load_string('''
             background_color: .8, .0, .0, 1
             on_press: app.stop()  
 
+        # Copy to clipboard
         # https://stackoverflow.com/questions/63790475/how-to-program-copy-to-paste-from-clipboard-buttons-on-app-developed-by-kivy            
         Button: 
             id: copy       
@@ -107,6 +107,7 @@ class CameraClick(BoxLayout):
         self.resultText, self.plainText = readPunchCard.run(file=fn, contrast=1.3)
         self.result.text = self.resultText
 
+    # the following is not used, but might be an idea for directsharing
     # https://gist.github.com/kived/0f450e738bf79c003253
     # https://stackoverflow.com/questions/38983649/kivy-android-share-image
     # https://stackoverflow.com/questions/63322944/how-to-use-share-button-to-share-content-of-my-app
@@ -122,10 +123,6 @@ class CameraClick(BoxLayout):
         chooser = Intent.createChooser(shareIntent, String('Share Punch Card Text'))
         PythonActivity.mActivity.startActivity(chooser)
 
-        # from jnius import cast
-        # currentActivity = cast('android.app.Activity', PythonActivity.mActivity)
-        # currentActivity.startActivity(shareIntent)
-
 
 class CardCamera(App):
 
@@ -135,6 +132,10 @@ class CardCamera(App):
             Permission.WRITE_EXTERNAL_STORAGE,
             Permission.READ_EXTERNAL_STORAGE
         ])
+        # https://www.albertgao.xyz/2017/05/22/how-to-get-current-app-folder-in-kivy/
+        userDataDir = getattr(self, 'user_data_dir')
+        print(f"user_data_dir={userDataDir}")
+        # Galaxy S7 JK/Card/Android/data/com.keinert.cardreader/files
         return CameraClick()
 
 
