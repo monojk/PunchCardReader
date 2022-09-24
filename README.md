@@ -45,8 +45,8 @@ in readPunchCard.py
     check if too dark, light, too low contrast
     check if dark/black background present
     convert image to black and white
-    remove small white regions
-    remove small black holes
+    remove small white regions  (possible distortions)
+    remove small black holes    (possible distortions)
     produce image of unpunched card by closing all holes
     find bounding box of unpunched card
     crop unpunched card image by the above bounding box
