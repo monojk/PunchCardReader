@@ -1,5 +1,5 @@
 # PunchCardReader
-Android kivy app to decode punch cards (IBM type, 12 rows, 80 rows) by taking a photo of the punch card. Best results if the back of the card on a black surface is photographed.
+Android kivy app to decode punch cards (IBM type, 12 rows, 80 rows) by taking a photo of the punch card. Best results if the back of the card on a black surface is photographed. There must be a black/dark border from the backgound around the card.
 
 The project is separated into the kivy python file and the card decoding python file. The card decoding python file can be run standalone from Spyder.
 
@@ -27,7 +27,7 @@ https://buildozer.readthedocs.io/en/latest/quickstart.html#run-my-application-fr
 
     buildozer android debug 2>&1 | tee build.log && buildozer -v android deploy run
     
-Here is a screenshot of the app. Snapshot of the back of a punch card to get better results without disturbing text.      
+Here is a screenshot of the app. Snapshot of the back of a punch card to get better results without disturbing text. Unrecognized codes will be displayed as &#191;     
 ![Picture of the app](PunchCardReader.jpg)
 
 The algorithm runs as follows:
