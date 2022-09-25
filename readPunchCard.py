@@ -25,8 +25,9 @@ def run(file=None, contrast=1.0, debug=False):
 
     #############################
     # https://github.com/digitaltrails/punchedcardreader/blob/master/punchedCardReader.py
+    # https://homepage.divms.uiowa.edu/~jones/cards/codes.html
     IBM_MODEL_029_KEYPUNCH = """
-        /&-0123456789ABCDEFGHIJKLMNOPQR/STUVWXYZ:#@'="`.<(+|!$*);^~,%_>? |
+        /&-0123456789ABCDEFGHIJKLMNOPQR/STUVWXYZ:#@'="¢.<(+|!$*);¬ ,%_>? |
     12 / O           OOOOOOOOO                        OOOOOO             |
     11|   O                   OOOOOOOOO                     OOOOOO       |
      0|    O                           OOOOOOOOO                  OOOOOO |
