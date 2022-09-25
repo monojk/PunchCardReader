@@ -25,7 +25,7 @@ https://buildozer.readthedocs.io/en/latest/quickstart.html#run-my-application-fr
 
     buildozer android debug 2>&1 | tee build.log && buildozer -v android deploy run
     
-Here is a screenshot of the app. Snapshot of the back of a punch card to get better results without disturbing text.      
+Here is a screenshot of the app. Snapshot of the back of a punch card to get better results without disturbing text. Unrecognized codes will be displayed as &#191;     
 ![Picture of the app](PunchCardReader.jpg)
 
 The algorithm runs as follows:
