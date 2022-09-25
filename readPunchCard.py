@@ -13,14 +13,13 @@ from PIL import ImageOps
 from PIL import ImageChops
 from PIL import ImageStat
 from PIL import ImageEnhance
-
-if False:
-    import matplotlib.pyplot as plt
 from PIL import ImageDraw
 import time
 
 
 def run(file=None, contrast=1.0, debug=False):
+    if debug:
+        import matplotlib.pyplot as plt
     if file is None:
         file = "card2.jpg"
 
@@ -102,7 +101,7 @@ def run(file=None, contrast=1.0, debug=False):
         return (f"[color=ff3333]{rawText}[/color]", rawText)
     threshold = int(stat.mean[0])
 
-    if False:
+    if debug:
         carde.show()
 
     ########################
@@ -112,14 +111,14 @@ def run(file=None, contrast=1.0, debug=False):
     # print(f"shape={im2arr.shape} dtype={im2arr.dtype} dimensions={im2arr.ndim}")
 
     # https://stackoverflow.com/questions/3823752/display-image-as-grayscale-using-matplotlib
-    if False:
+    if debug:
         plt.gray()  # all plt.show are gray now
         plt.imshow(im2arr)
         plt.show()
 
     # threshold = 80
     bw_img = im2arr > threshold  # convert to black and white
-    if False:
+    if debug:
         plt.imshow(bw_img)
         plt.show()
 
@@ -127,7 +126,7 @@ def run(file=None, contrast=1.0, debug=False):
     open_img = ndimage.binary_opening(bw_img, iterations=3)
     # Remove small black holes
     close_img = ndimage.binary_closing(open_img, iterations=3)
-    if False:
+    if debug:
         plt.imshow(close_img)
         plt.show()
 
@@ -151,19 +150,19 @@ def run(file=None, contrast=1.0, debug=False):
     croppedWidth = np.max(x_nonzero) - np.min(x_nonzero)
     croppedHeight = np.max(y_nonzero) - np.min(y_nonzero)
     print(f"Unpunched card BBox: {bBox} width={croppedWidth} height={croppedHeight}")
-    if False:
+    if debug:
         plt.imshow(fill_img)
         plt.show()  # fill_img = unpunched card (white on black)
 
     # crop both images at bBox fill_img ^ close_img
     fill_img_crop = fill_img[np.min(y_nonzero): np.max(y_nonzero), np.min(x_nonzero): np.max(x_nonzero)]
-    if False:
+    if debug:
         plt.imshow(fill_img_crop)
         plt.show()  # fill_imgc = cropped unpunched card (white on black)
     close_img_crop = close_img[np.min(y_nonzero): np.max(y_nonzero), np.min(x_nonzero): np.max(x_nonzero)]
     # only the white holes are left in holes_img_crop
     holes_img_crop = fill_img_crop ^ close_img_crop
-    if False:
+    if debug:
         plt.imshow(holes_img_crop)
         plt.show()
 
@@ -274,7 +273,7 @@ def run(file=None, contrast=1.0, debug=False):
     holes_crop_img = Image.fromarray(holes_img_crop)
     draw = ImageDraw.Draw(holes_crop_img)
     draw.line([nw, ne, se, sw, nw], fill=256, width=5)
-    if False:
+    if debug:
         holes_crop_img.show()
 
     # QUAD transform should turn perspective to rectangle
@@ -286,7 +285,7 @@ def run(file=None, contrast=1.0, debug=False):
     rectified_holes_img = holes_crop_img.transform(size, Image.QUAD,  # Image.Transform.QUAD  9.2 vs 8.4
                                   flatten([nw, sw, se, ne]),
                                   resample=Image.BILINEAR)  # Image.Resampling.BILINEAR
-    if False:
+    if debug:
         rectified_holes_img.show()
 
     ###################################################################
@@ -294,7 +293,7 @@ def run(file=None, contrast=1.0, debug=False):
     blank_card = fill_crop_img.transform(size, Image.QUAD,  # Image.Transform.QUAD
                                 flatten([nw, sw, se, ne]),
                                 resample=Image.BILINEAR)  # Image.Resampling.BILINEAR
-    if False:
+    if debug:
         blank_card.show()
     bevelx = 0.04
     bevely = 0.13
@@ -550,7 +549,7 @@ def run(file=None, contrast=1.0, debug=False):
     return (f"[color=0080ff]Text: '[/color]{text}[color=0080ff]'[/color]", text)
 
 
-# This is for standalone testing purposes with Spyder    
+# This is for standalone testing purposes with Spyder:
 if __name__ == "__main__":
     # file = "card2.jpg"
     # file = "CARD_20220922_094644.png"

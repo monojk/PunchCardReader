@@ -1,6 +1,8 @@
 # PunchCardReader
 Android kivy app to decode punch cards (IBM type, 12 rows, 80 rows) by taking a photo of the punch card. Best results if the back of the card on a black surface is photographed.
 
+The project is separated into the kivy python file and the card decoding python file. The card decoding python file can be run standalone from Spyder.
+
 For Kivy see: https://kivy.org/
 
 To build use buildozer: https://buildozer.readthedocs.io/en/latest/index.html
